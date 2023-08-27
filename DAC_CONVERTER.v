@@ -28,81 +28,81 @@ assign FPGA_INIT_B=1; // PLATFORM FLASH
 
 always@(posedge clk or posedge reset)
 begin 
-if(reset==1) // DISABLING OTHER PERIPHERALS CONNECTED TO SPI
-begin
-dac_cs<=1;
-spi_sck<=0;
-spi_mosi<=0;
-dac_clr<=1;
-send<=0;
-dac_state<=0;
-end
+  if(reset==1) // DISABLING OTHER PERIPHERALS CONNECTED TO SPI
+  begin
+    dac_cs<=1;
+    spi_sck<=0;
+    spi_mosi<=0;
+    dac_clr<=1;
+    send<=0;
+    dac_state<=0;
+  end
 else begin
 
 case(dac_state) // DAC STATES
 
 0:begin // IDLE
-dac_cs<=1;
-spi_sck<=0;
-spi_mosi<=0;
-dac_clr<=1;
-send<=0;
-dac_state<=dac_state+1;
+  dac_cs<=1;
+  spi_sck<=0;
+  spi_mosi<=0;
+  dac_clr<=1;
+  send<=0;
+  dac_state<=dac_state+1;
 end
 
 1:begin // 32 BIT ASSIGNING to DAC 
-dac_out<={8'be0000000,4'b0011, 4'b0000, 12'b101100000000,4'b0000}; 
-dac_state<=dac_state+1;
+  dac_out<={8'be0000000,4'b0011, 4'b0000, 12'b101100000000,4'b0000}; 
+  dac_state<=dac_state+1;
 end
 
 2:begin // BIT ASSIGNING ON SPI_MOSI LINE
-dac_cs<=0; // FPGA TRANSMITS DATA ON MOSI Line when DAC_CS<=0;
-spi_sck<=0; 
-spi_mosi<=dac_out [count-1]; // ASSIGNING DIGITAL BIT TO MOSI LINE, STARTING 
-FROM MSB 
-count<=count-1; dac_state<=dac_state+1; end
+  dac_cs<=0; // FPGA TRANSMITS DATA ON MOSI Line when DAC_CS<=0;
+  spi_sck<=0; 
+  spi_mosi<=dac_out [count-1]; // ASSIGNING DIGITAL BIT TO MOSI LINE, STARTING 
+  FROM MSB 
+  count<=count-1; dac_state<=dac_state+1; end
 3:begin // WAITING FOR COMPLETE 32 BIT INPUT TO MOSI
-if(count>0) 
-begin 
-spi_sck<=1;
-dac_state<=2;
-end
+  if(count>0) 
+  begin 
+    spi_sck<=1;
+    dac_state<=2;
+  end
 
 else
-begin
-spi_sck<=1; I
-dac_state<=dac_state+1;
-end
+  begin
+    spi_sck<=1; I
+    dac_state<=dac_state+1;
+  end
 end
 
 4:begin
-spi_sck<=0;
-dac_state<=dac_state+1;
+  spi_sck<=0;
+  dac_state<=dac_state+1;
 end
 
 5:begin 
-dac_cs<=1; // ANALOG CONVERSION STARTS, WHEN DAC_CS<=1;AFTER ASSIGNING 32 
-BIT TO MOSI Line dac_state<=dac_state+1;
+  dac_cs<=1; // ANALOG CONVERSION STARTS, WHEN DAC_CS<=1;AFTER ASSIGNING 32 
+  BIT TO MOSI Line dac_state<=dac_state+1;
 end
 
 6:begin
-send<=1;
-dac_state<=dac_state+1;
+  send<=1;
+  dac_state<=dac_state+1;
 end
 
 7:begin
-send<=0;
-dac_state<=1;
+  send<=0;
+  dac_state<=1;
 end
 
 default:begin
-dac_cs<=1;
-spi_mosi<=0;
-spi_sck<=0;
-dac_clr<=1;
-send<=0;
-dac_state<=0;
-count<=32;
+  dac_cs<=1;
+  spi_mosi<=0;
+  spi_sck<=0;
+  dac_clr<=1;
+  send<=0;
+  dac_state<=0;
+  count<=32;
 end
 
 endcase
